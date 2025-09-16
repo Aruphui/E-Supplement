@@ -21,7 +21,11 @@ app.use(cors());
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads');
+// Use /tmp directory in serverless environment
+const uploadsDir = process.env.NODE_ENV === 'production' 
+    ? '/tmp/uploads'
+    : path.join(__dirname, 'uploads');
+
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -947,9 +951,14 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Bhadrak Health Club API server running on port ${PORT}`);
-    console.log(`📊 Admin can login with: username: admin, password: admin123`);
-});
+// Export the app for Vercel serverless deployment
+// Don't start server in serverless environment
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+        console.log(`🚀 Bhadrak Health Club API server running on port ${PORT}`);
+        console.log(`📊 Admin can login with: username: admin, password: admin123`);
+    });
+}
 
 module.exports = app;

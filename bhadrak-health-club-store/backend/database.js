@@ -1,9 +1,15 @@
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
+const path = require('path');
 
 class Database {
     constructor() {
-        this.db = new sqlite3.Database('./bhadrak_health_club.db');
+        // Use /tmp directory in serverless environment, otherwise use current directory
+        const dbPath = process.env.NODE_ENV === 'production' 
+            ? '/tmp/bhadrak_health_club.db' 
+            : './bhadrak_health_club.db';
+        
+        this.db = new sqlite3.Database(dbPath);
         this.init();
     }
 
