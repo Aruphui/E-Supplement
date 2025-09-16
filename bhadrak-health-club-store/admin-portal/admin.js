@@ -370,6 +370,7 @@ function showAddProduct() {
     currentEditingProductId = null;
     document.getElementById('productModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add New Product';
     document.getElementById('productForm').reset();
+    clearImagePreview();
     document.getElementById('productModal').style.display = 'block';
 }
 
@@ -388,11 +389,92 @@ async function editProduct(productId) {
         document.getElementById('productCategory').value = product.category;
         document.getElementById('productImage').value = product.image_url || '';
         
+        // Show image preview if image URL exists
+        if (product.image_url) {
+            showImagePreview(product.image_url);
+        } else {
+            clearImagePreview();
+        }
+        
         document.getElementById('productModal').style.display = 'block';
     } catch (error) {
         console.error('Edit product error:', error);
         showNotification('Failed to load product details', 'error');
     }
+}
+
+// Image upload handling
+let uploadedImageUrl = null;
+
+function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('Image file is too large. Maximum size is 5MB.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file.', 'error');
+        input.value = '';
+        return;
+    }
+    
+    // Show loading state
+    showNotification('Uploading image...', 'info');
+    
+    // Create FormData and upload
+    const formData = new FormData();
+    formData.append('productImage', file);
+    
+    fetch(`${API_BASE}/admin/products/upload-image`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.imageUrl) {
+            uploadedImageUrl = data.imageUrl;
+            document.getElementById('productImage').value = data.imageUrl;
+            showImagePreview(data.imageUrl);
+            showNotification('Image uploaded successfully!', 'success');
+        } else {
+            throw new Error(data.message || 'Failed to upload image');
+        }
+    })
+    .catch(error => {
+        console.error('Image upload error:', error);
+        showNotification('Failed to upload image: ' + error.message, 'error');
+        input.value = '';
+    });
+}
+
+function showImagePreview(imageUrl) {
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImg = document.getElementById('imagePreview');
+    
+    if (imageUrl) {
+        // Handle relative URLs by making them absolute
+        const fullImageUrl = imageUrl.startsWith('/') ? `${window.location.origin}${imageUrl}` : imageUrl;
+        previewImg.src = fullImageUrl;
+        previewContainer.style.display = 'block';
+    } else {
+        previewContainer.style.display = 'none';
+    }
+}
+
+function clearImagePreview() {
+    uploadedImageUrl = null;
+    document.getElementById('productImage').value = '';
+    document.getElementById('productImageUpload').value = '';
+    document.getElementById('imagePreviewContainer').style.display = 'none';
 }
 
 async function handleProductSubmit(e) {
@@ -467,8 +549,80 @@ async function deleteProduct(productId) {
     }
 }
 
+// Deactivate all products (safer option)
+async function deactivateAllProducts() {
+    const confirmMessage = 'Are you sure you want to DEACTIVATE all products?\n\nThis will make all products invisible to customers but keeps the data intact.\n\nThis action can be reversed by editing individual products.';
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/products/deactivate-all`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(`${data.productsDeactivated} products deactivated successfully`, 'success');
+            loadProducts();
+            loadDashboardData(); // Refresh stats
+        } else {
+            showNotification(data.message || 'Failed to deactivate products', 'error');
+        }
+    } catch (error) {
+        console.error('Deactivate all products error:', error);
+        showNotification('Failed to deactivate products', 'error');
+    }
+}
+
+// Clear all products (dangerous operation)
+async function clearAllProducts() {
+    const confirmMessage = 'ARE YOU ABSOLUTELY SURE?\n\nThis will PERMANENTLY DELETE ALL PRODUCTS and related order items!\n\n⚠️  THIS ACTION CANNOT BE UNDONE!\n⚠️  ALL PRODUCT DATA WILL BE LOST!\n⚠️  ALL ORDER HISTORY WILL BE AFFECTED!\n\nType "DELETE ALL" in the next prompt to confirm.';
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    const confirmText = prompt('Type "DELETE ALL" to confirm permanent deletion:');
+    if (confirmText !== 'DELETE ALL') {
+        showNotification('Product deletion cancelled', 'info');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/products/clear-all`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification(`All products cleared successfully. Products deleted: ${data.productsDeleted}`, 'success');
+            loadProducts();
+            loadDashboardData(); // Refresh stats
+        } else {
+            showNotification(data.message || 'Failed to clear products', 'error');
+        }
+    } catch (error) {
+        console.error('Clear all products error:', error);
+        showNotification('Failed to clear products', 'error');
+    }
+}
+
 function closeProductModal() {
     document.getElementById('productModal').style.display = 'none';
+    document.getElementById('productForm').reset();
+    clearImagePreview();
     currentEditingProductId = null;
 }
 
