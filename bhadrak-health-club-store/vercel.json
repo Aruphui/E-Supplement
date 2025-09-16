@@ -38,6 +38,7 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "JWT_SECRET": "@jwt-secret"
+    "JWT_SECRET": "@JWT_SECRET,
+    "PORT": 3001
   }
 }
