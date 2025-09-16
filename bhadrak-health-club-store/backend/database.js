@@ -4,18 +4,19 @@ const path = require('path');
 
 class Database {
     constructor() {
-        // Use persistent database path for serverless
+        // For Vercel serverless: use in-memory database that reinitializes on each cold start
         const dbPath = process.env.NODE_ENV === 'production' 
-            ? '/tmp/bhadrak_health_club.db' 
+            ? ':memory:' 
             : './bhadrak_health_club.db';
         
         this.dbPath = dbPath;
         this.db = null;
         this.initialized = false;
+        this.isProduction = process.env.NODE_ENV === 'production';
     }
 
     async getDatabase() {
-        if (!this.db) {
+        if (!this.db || (this.isProduction && !this.initialized)) {
             await this.connect();
         }
         return this.db;
@@ -28,8 +29,9 @@ class Database {
                     console.error('Database connection error:', err);
                     reject(err);
                 } else {
-                    console.log('Connected to SQLite database');
-                    if (!this.initialized) {
+                    console.log(`Connected to SQLite database (${this.isProduction ? 'in-memory' : 'file'})`);
+                    // Always reinitialize in production (Vercel serverless)
+                    if (!this.initialized || this.isProduction) {
                         await this.init();
                     }
                     resolve(this.db);
@@ -148,14 +150,25 @@ class Database {
                                         console.log('Default admin user created');
                                         this.addSampleData().then(() => {
                                             this.initialized = true;
+                                            console.log('Database fully initialized');
                                             resolve();
                                         }).catch(reject);
                                     }
                                 }
                             );
                         } else {
-                            this.initialized = true;
-                            resolve();
+                            console.log('Admin user already exists');
+                            // In production, always add sample data on cold start
+                            if (this.isProduction) {
+                                this.addSampleData().then(() => {
+                                    this.initialized = true;
+                                    console.log('Sample data refreshed for serverless');
+                                    resolve();
+                                }).catch(reject);
+                            } else {
+                                this.initialized = true;
+                                resolve();
+                            }
                         }
                     });
                 });
@@ -165,42 +178,54 @@ class Database {
 
     async addSampleData() {
         return new Promise((resolve, reject) => {
-            // Check if products already exist
-            this.db.get('SELECT COUNT(*) as count FROM products', [], (err, result) => {
+            // In production (serverless), always add sample data since it's in-memory
+            // In development, check if products already exist
+            const shouldCheckExisting = !this.isProduction;
+            
+            if (shouldCheckExisting) {
+                this.db.get('SELECT COUNT(*) as count FROM products', [], (err, result) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+
+                    if (result.count === 0) {
+                        this.insertSampleProducts(resolve, reject);
+                    } else {
+                        resolve();
+                    }
+                });
+            } else {
+                // Production: always insert sample data
+                this.insertSampleProducts(resolve, reject);
+            }
+        });
+    }
+
+    insertSampleProducts(resolve, reject) {
+        const sampleProducts = [
+            ['Whey Protein Isolate', 'High-quality whey protein for muscle building', 2999.00, 'Protein', 50],
+            ['Mass Gainer', 'Advanced mass gainer for weight gain', 3599.00, 'Mass Gainer', 30],
+            ['BCAA Powder', 'Branched Chain Amino Acids for recovery', 1799.00, 'Amino Acids', 40],
+            ['Pre-Workout', 'Energy booster for intense workouts', 2299.00, 'Pre-Workout', 35],
+            ['Creatine Monohydrate', 'Pure creatine for strength and power', 1299.00, 'Creatine', 60],
+            ['Fish Oil Capsules', 'Omega-3 fatty acids for health', 899.00, 'Health', 80],
+            ['Multivitamin', 'Complete vitamin and mineral complex', 1199.00, 'Vitamins', 70],
+            ['Casein Protein', 'Slow-digesting protein for overnight recovery', 3299.00, 'Protein', 25]
+        ];
+
+        const stmt = this.db.prepare('INSERT INTO products (name, description, price, category, stock_quantity) VALUES (?, ?, ?, ?, ?)');
+        
+        let completed = 0;
+        sampleProducts.forEach(product => {
+            stmt.run(product, (err) => {
                 if (err) {
-                    reject(err);
-                    return;
+                    console.error('Error inserting sample product:', err);
                 }
-
-                if (result.count === 0) {
-                    const sampleProducts = [
-                        ['Whey Protein Isolate', 'High-quality whey protein for muscle building', 2999.00, 'Protein', 50],
-                        ['Mass Gainer', 'Advanced mass gainer for weight gain', 3599.00, 'Mass Gainer', 30],
-                        ['BCAA Powder', 'Branched Chain Amino Acids for recovery', 1799.00, 'Amino Acids', 40],
-                        ['Pre-Workout', 'Energy booster for intense workouts', 2299.00, 'Pre-Workout', 35],
-                        ['Creatine Monohydrate', 'Pure creatine for strength and power', 1299.00, 'Creatine', 60],
-                        ['Fish Oil Capsules', 'Omega-3 fatty acids for health', 899.00, 'Health', 80],
-                        ['Multivitamin', 'Complete vitamin and mineral complex', 1199.00, 'Vitamins', 70],
-                        ['Casein Protein', 'Slow-digesting protein for overnight recovery', 3299.00, 'Protein', 25]
-                    ];
-
-                    const stmt = this.db.prepare('INSERT INTO products (name, description, price, category, stock_quantity) VALUES (?, ?, ?, ?, ?)');
-                    
-                    let completed = 0;
-                    sampleProducts.forEach(product => {
-                        stmt.run(product, (err) => {
-                            if (err) {
-                                console.error('Error inserting sample product:', err);
-                            }
-                            completed++;
-                            if (completed === sampleProducts.length) {
-                                stmt.finalize();
-                                console.log('Sample products added');
-                                resolve();
-                            }
-                        });
-                    });
-                } else {
+                completed++;
+                if (completed === sampleProducts.length) {
+                    stmt.finalize();
+                    console.log('Sample products added');
                     resolve();
                 }
             });

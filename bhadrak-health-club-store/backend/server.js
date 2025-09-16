@@ -16,13 +16,28 @@ const JWT_SECRET = process.env.JWT_SECRET || 'bhadrak_health_club_secret_key_202
 // Global database instance for serverless consistency
 let database = null;
 let db = null;
+let isInitializing = false;
 
-// Initialize database connection
+// Initialize database connection with proper serverless handling
 async function initializeDatabase() {
+    // Prevent multiple simultaneous initializations
+    if (isInitializing) {
+        while (isInitializing) {
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        return db;
+    }
+
     if (!database) {
-        database = getDatabaseInstance();
-        db = await database.getDatabase();
-        console.log('Database initialized for serverless function');
+        isInitializing = true;
+        try {
+            console.log('Initializing database for serverless function...');
+            database = getDatabaseInstance();
+            db = await database.getDatabase();
+            console.log('Database successfully initialized for serverless function');
+        } finally {
+            isInitializing = false;
+        }
     }
     return db;
 }
@@ -34,14 +49,18 @@ app.use(express.json());
 // Database initialization middleware - ensures DB is ready for all requests
 app.use(async (req, res, next) => {
     try {
-        if (!db) {
+        // Always ensure database is initialized for each request in serverless
+        if (!db || (process.env.NODE_ENV === 'production' && !database.initialized)) {
             db = await initializeDatabase();
         }
         req.db = db;
         next();
     } catch (error) {
         console.error('Database initialization error:', error);
-        res.status(500).json({ message: 'Database connection failed' });
+        res.status(500).json({ 
+            message: 'Database connection failed',
+            error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        });
     }
 });
 
