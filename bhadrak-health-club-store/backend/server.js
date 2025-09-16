@@ -81,6 +81,17 @@ app.use('/uploads', express.static(uploadsDir));
 app.use('/admin', express.static(path.join(__dirname, '../admin-portal')));
 app.use('/', express.static(path.join(__dirname, '../user-store')));
 
+// Health check endpoint for Docker container monitoring
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        database: db ? 'connected' : 'disconnected'
+    });
+});
+
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {

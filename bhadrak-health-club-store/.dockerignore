@@ -1,0 +1,74 @@
+# Docker ignore file for optimized builds
+
+# Node modules
+node_modules
+*/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development files
+.git
+.gitignore
+README.md
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Local development
+.env.local
+.env.development
+.env.test
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Database files (will be created in container)
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads directory (will be mounted as volume)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+dist
+build
+.tmp
+.cache
+
+# Testing
+coverage
+.nyc_output
+.coverage
+
+# Temporary files
+tmp
+temp
+.tmp
+
+# Documentation
+docs
+DOCKER_DEPLOYMENT.md

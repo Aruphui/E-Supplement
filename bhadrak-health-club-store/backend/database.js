@@ -4,19 +4,31 @@ const path = require('path');
 
 class Database {
     constructor() {
-        // For Vercel serverless: use in-memory database that reinitializes on each cold start
-        const dbPath = process.env.NODE_ENV === 'production' 
-            ? ':memory:' 
-            : './bhadrak_health_club.db';
+        // Database path configuration for different environments
+        let dbPath;
+        
+        if (process.env.DATABASE_PATH) {
+            // Container deployment with persistent volume
+            dbPath = process.env.DATABASE_PATH;
+        } else if (process.env.NODE_ENV === 'production') {
+            // Vercel serverless - in-memory
+            dbPath = ':memory:';
+        } else {
+            // Local development
+            dbPath = './bhadrak_health_club.db';
+        }
         
         this.dbPath = dbPath;
         this.db = null;
         this.initialized = false;
         this.isProduction = process.env.NODE_ENV === 'production';
+        this.isServerless = process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH;
+        
+        console.log(`Database configuration: ${this.isServerless ? 'Serverless (in-memory)' : 'Persistent'} - Path: ${dbPath}`);
     }
 
     async getDatabase() {
-        if (!this.db || (this.isProduction && !this.initialized)) {
+        if (!this.db || (this.isServerless && !this.initialized)) {
             await this.connect();
         }
         return this.db;
@@ -29,9 +41,9 @@ class Database {
                     console.error('Database connection error:', err);
                     reject(err);
                 } else {
-                    console.log(`Connected to SQLite database (${this.isProduction ? 'in-memory' : 'file'})`);
-                    // Always reinitialize in production (Vercel serverless)
-                    if (!this.initialized || this.isProduction) {
+                    console.log(`Connected to SQLite database (${this.isServerless ? 'in-memory' : 'persistent file'})`);
+                    // Always reinitialize in serverless, or if not initialized in persistent mode
+                    if (!this.initialized || this.isServerless) {
                         await this.init();
                     }
                     resolve(this.db);
@@ -158,8 +170,9 @@ class Database {
                             );
                         } else {
                             console.log('Admin user already exists');
-                            // In production, always add sample data on cold start
-                            if (this.isProduction) {
+                            // In serverless, always add sample data on cold start
+                            // In persistent mode, only add if no products exist
+                            if (this.isServerless) {
                                 this.addSampleData().then(() => {
                                     this.initialized = true;
                                     console.log('Sample data refreshed for serverless');
@@ -178,9 +191,9 @@ class Database {
 
     async addSampleData() {
         return new Promise((resolve, reject) => {
-            // In production (serverless), always add sample data since it's in-memory
-            // In development, check if products already exist
-            const shouldCheckExisting = !this.isProduction;
+            // In serverless mode, always add sample data since it's in-memory
+            // In persistent mode, check if products already exist
+            const shouldCheckExisting = !this.isServerless;
             
             if (shouldCheckExisting) {
                 this.db.get('SELECT COUNT(*) as count FROM products', [], (err, result) => {
@@ -190,13 +203,16 @@ class Database {
                     }
 
                     if (result.count === 0) {
+                        console.log('No products found, adding sample data...');
                         this.insertSampleProducts(resolve, reject);
                     } else {
+                        console.log(`Database already has ${result.count} products, skipping sample data`);
                         resolve();
                     }
                 });
             } else {
-                // Production: always insert sample data
+                // Serverless: always insert sample data
+                console.log('Serverless mode: inserting fresh sample data...');
                 this.insertSampleProducts(resolve, reject);
             }
         });

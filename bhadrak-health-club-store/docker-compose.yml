@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Main application service
+  bhadrak-store:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: bhadrak-health-club-store
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - JWT_SECRET=${JWT_SECRET:-bhadrak_health_club_secret_key_2024}
+      - DATABASE_PATH=/app/data/bhadrak_health_club.db
+    volumes:
+      # Persistent database storage
+      - db_data:/app/data
+      # Persistent uploads storage
+      - uploads_data:/app/backend/uploads
+      # Optional: Mount logs directory
+      - ./logs:/app/logs
+    networks:
+      - bhadrak-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Reverse proxy with nginx (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: bhadrak-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # SSL certificates if needed
+    depends_on:
+      - bhadrak-store
+    networks:
+      - bhadrak-network
+    profiles:
+      - production  # Only start nginx in production profile
+
+networks:
+  bhadrak-network:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# Development override - use with docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+---
+# docker-compose.dev.yml content (for development)
+version: '3.8'
+
+services:
+  bhadrak-store:
+    build:
+      target: builder  # Use builder stage for development
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Mount source code for development
+      - ./backend:/app/backend
+      - ./admin-portal:/app/admin-portal
+      - ./user-store:/app/user-store
+      # Don't mount node_modules to avoid conflicts
+      - /app/backend/node_modules
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3001:3001"
+      - "9229:9229"  # Debug port

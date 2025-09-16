@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bhadrak-store:
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Mount source code for hot reload
+      - ./backend:/app/backend
+      - ./admin-portal:/app/admin-portal
+      - ./user-store:/app/user-store
+      # Exclude node_modules from mounting
+      - /app/backend/node_modules
+    command: ["npm", "run", "dev"]
+    ports:
+      - "9229:9229"  # Debug port for Node.js debugging
