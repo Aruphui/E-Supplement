@@ -8,14 +8,6 @@
       "config": {
         "maxLambdaSize": "50mb"
       }
-    },
-    {
-      "src": "user-store/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "admin-portal/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -24,24 +16,33 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/uploads/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/admin/(.*)",
-      "dest": "admin-portal/$1"
+      "dest": "backend/server.js"
     },
     {
       "src": "/admin",
-      "dest": "admin-portal/index.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "user-store/$1"
+      "dest": "backend/server.js"
     },
     {
       "src": "/",
-      "dest": "user-store/index.html"
+      "dest": "backend/server.js"
     }
   ],
   "env": {
     "NODE_ENV": "production",
     "JWT_SECRET": "@jwt-secret"
+  },
+  "functions": {
+    "backend/server.js": {
+      "maxDuration": 30
+    }
   }
 }
