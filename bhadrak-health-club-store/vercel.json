@@ -39,10 +39,5 @@
   "env": {
     "NODE_ENV": "production",
     "JWT_SECRET": "@jwt-secret"
-  },
-  "functions": {
-    "backend/server.js": {
-      "maxDuration": 30
-    }
   }
 }
