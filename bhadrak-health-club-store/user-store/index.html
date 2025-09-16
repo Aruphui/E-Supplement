@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhadrak Health Club - Supplement Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="nav-brand">
+                    <div class="logo-container">
+                        <img id="clubLogo" src="https://via.placeholder.com/50x50?text=BHC" alt="Bhadrak Health Club" class="club-logo">
+                        <div>
+                            <h1>Bhadrak Health Club</h1>
+                            <small>Premium Supplements</small>
+                        </div>
+                    </div>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#" onclick="showHome()" class="nav-link active" id="homeTab">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="#" onclick="showProducts()" class="nav-link" id="productsTab">
+                        <i class="fas fa-shopping-bag"></i> Products
+                    </a>
+                    <a href="#" onclick="showCart()" class="nav-link" id="cartTab">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                        <span id="cartCount" class="cart-count">0</span>
+                    </a>
+                    <div id="userAuthSection">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Home Section -->
+        <section id="homeSection" class="section">
+            <div class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <h2>Premium Supplements for Your Fitness Journey</h2>
+                        <p>Fuel your workouts with high-quality supplements from Bhadrak Health Club</p>
+                        <button onclick="showProducts()" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag"></i> Shop Now
+                        </button>
+                    </div>
+                    <div class="hero-image">
+                        <i class="fas fa-dumbbell hero-icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="container">
+                    <h3>Why Choose Us?</h3>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <i class="fas fa-award"></i>
+                            <h4>Premium Quality</h4>
+                            <p>Only the highest quality supplements from trusted brands</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-shipping-fast"></i>
+                            <h4>Fast Delivery</h4>
+                            <p>Quick and reliable delivery to your doorstep</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-phone-alt"></i>
+                            <h4>Expert Support</h4>
+                            <p>Professional guidance from fitness experts</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <h4>Best Prices</h4>
+                            <p>Competitive pricing on all products</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="productsSection" class="section" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-bag"></i> Our Products</h2>
+                    <div class="controls">
+                        <select id="categoryFilter">
+                            <option value="">All Categories</option>
+                        </select>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search products...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="products-grid" id="productsGrid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Cart Section -->
+        <section id="cartSection" class="section" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Your Cart</h2>
+                </div>
+
+                <div class="cart-content">
+                    <div class="cart-items" id="cartItems">
+                        <!-- Cart items will be loaded here -->
+                    </div>
+
+                    <div class="cart-summary">
+                        <div class="summary-card">
+                            <h3>Order Summary</h3>
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="cartSubtotal">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Delivery:</span>
+                                <span>Free</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span id="cartTotal">₹0.00</span>
+                            </div>
+                            <button onclick="showCheckout()" class="btn btn-primary btn-full">
+                                <i class="fas fa-credit-card"></i> Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Orders Section -->
+        <section id="ordersSection" class="section" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> My Orders</h2>
+                </div>
+
+                <div id="userOrdersContent">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Login/Register Section -->
+        <section id="authSection" class="section" style="display: none;">
+            <div class="container">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <div class="auth-tabs">
+                                <button class="auth-tab active" onclick="showAuthTab('login')">Login</button>
+                                <button class="auth-tab" onclick="showAuthTab('register')">Register</button>
+                            </div>
+                        </div>
+
+                        <div id="loginForm" class="auth-form">
+                            <h3>Welcome Back!</h3>
+                            <form id="userLoginForm">
+                                <div class="form-group">
+                                    <label for="loginEmail">Email</label>
+                                    <input type="email" id="loginEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="loginPassword">Password</label>
+                                    <input type="password" id="loginPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    <i class="fas fa-sign-in-alt"></i> Login
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="registerForm" class="auth-form" style="display: none;">
+                            <h3>Create Account</h3>
+                            <form id="userRegisterForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="registerName">Full Name</label>
+                                        <input type="text" id="registerName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="registerPhone">Phone</label>
+                                        <input type="tel" id="registerPhone" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerEmail">Email</label>
+                                    <input type="email" id="registerEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerPassword">Password</label>
+                                    <input type="password" id="registerPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="registerAddress">Address</label>
+                                    <textarea id="registerAddress" rows="2"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    <i class="fas fa-user-plus"></i> Create Account
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Product Details</h3>
+                <span class="close" onclick="closeProductModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="productModalBody">
+                <!-- Product details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content checkout-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-credit-card"></i> Checkout</h3>
+                <span class="close" onclick="closeCheckoutModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="checkoutForm">
+                    <div class="checkout-steps">
+                        <div class="step active">
+                            <span class="step-number">1</span>
+                            <span class="step-title">Personal Info</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="step-title">Payment</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="step-title">Confirmation</span>
+                        </div>
+                    </div>
+
+                    <div id="step1" class="checkout-step">
+                        <h4>Personal Information</h4>
+                        <div class="form-group">
+                            <label for="customerName">Full Name *</label>
+                            <input type="text" id="customerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">Phone Number *</label>
+                            <input type="tel" id="customerPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerAddress">Delivery Address</label>
+                            <textarea id="customerAddress" rows="3" placeholder="Enter your full address"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" onclick="nextStep()" class="btn btn-primary">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="step2" class="checkout-step" style="display: none;">
+                        <h4>Payment Method</h4>
+                        <div class="payment-methods">
+                            <div class="payment-option">
+                                <input type="radio" id="cashPayment" name="paymentMethod" value="Cash" checked>
+                                <label for="cashPayment" class="payment-label">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <div>
+                                        <strong>Cash on Delivery</strong>
+                                        <small>Pay when you receive your order</small>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="payment-option">
+                                <input type="radio" id="upiPayment" name="paymentMethod" value="UPI">
+                                <label for="upiPayment" class="payment-label">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <div>
+                                        <strong>UPI Payment</strong>
+                                        <small>Pay via UPI (requires admin approval)</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" onclick="prevStep()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="button" onclick="nextStep()" class="btn btn-primary">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="step3" class="checkout-step" style="display: none;">
+                        <h4>Order Confirmation</h4>
+                        <div class="order-review" id="orderReview">
+                            <!-- Order summary will be loaded here -->
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" onclick="prevStep()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Place Order
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Modal -->
+    <div id="orderSuccessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Order Placed Successfully!</h3>
+                <span class="close" onclick="closeOrderSuccessModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="orderSuccessBody">
+                <!-- Order success message will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="store.js"></script>
+</body>
+</html>

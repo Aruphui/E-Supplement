@@ -1,0 +1,30 @@
+{
+  "name": "bhadrak-health-club-store",
+  "version": "1.0.0",
+  "description": "E-commerce platform for Bhadrak Health Club supplements with admin panel and user authentication",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "cd backend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:admin": "cd admin-portal && npm run dev",
+    "dev:user": "cd user-store && npm run dev",
+    "install:all": "cd backend && npm install",
+    "build": "echo 'Build completed'",
+    "vercel-build": "echo 'Vercel build completed'"
+  },
+  "keywords": [
+    "ecommerce", 
+    "supplements", 
+    "health", 
+    "fitness",
+    "nodejs",
+    "express",
+    "sqlite"
+  ],
+  "author": "Bhadrak Health Club",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

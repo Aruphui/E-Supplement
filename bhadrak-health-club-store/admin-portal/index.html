@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhadrak Health Club - Admin Portal</title>
+    <link rel="stylesheet" href="styles-modern.css">
+    <script src="config.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h1><i class="fas fa-dumbbell"></i> Bhadrak Health Club</h1>
+                        <p>Admin Portal</p>
+                    </div>
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="username" placeholder="Username" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+                    <div class="login-info">
+                        <small>Default credentials: admin / admin123</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboardScreen" class="screen" style="display: none;">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo-section">
+                        <i class="fas fa-dumbbell logo-icon"></i>
+                        <div class="logo-text">
+                            <h3>Bhadrak Health</h3>
+                            <span>Admin Portal</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <ul class="nav-menu">
+                        <li>
+                            <a href="#" onclick="showDashboard()" class="nav-link active" id="dashboardTab">
+                                <i class="fas fa-chart-bar nav-icon"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="showProducts()" class="nav-link" id="productsTab">
+                                <i class="fas fa-boxes nav-icon"></i>
+                                <span>Products</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="showOrders()" class="nav-link" id="ordersTab">
+                                <i class="fas fa-shopping-cart nav-icon"></i>
+                                <span>Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onclick="showPayments()" class="nav-link" id="paymentsTab">
+                                <i class="fas fa-credit-card nav-icon"></i>
+                                <span>Payments</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <div class="sidebar-footer">
+                    <div class="admin-profile">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="profile-info">
+                            <span class="profile-name" id="adminUsername">Admin</span>
+                            <span class="profile-role">Administrator</span>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <main class="main-content">
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Dashboard Content -->
+                <div id="dashboardContent" class="content-section">
+                    <div class="content-header">
+                        <div class="header-left">
+                            <h1 class="page-title">
+                                <i class="fas fa-chart-bar title-icon"></i>
+                                Dashboard Overview
+                            </h1>
+                            <p class="page-subtitle">Monitor your store's performance and analytics</p>
+                        </div>
+                        <div class="header-actions">
+                            <div class="filter-group">
+                                <label for="dashboardPeriodFilter" class="filter-label">Period:</label>
+                                <select id="dashboardPeriodFilter" class="filter-select">
+                                    <option value="all">All Time</option>
+                                    <option value="week">Last 7 Days</option>
+                                    <option value="month">Last 30 Days</option>
+                                    <option value="year">Last Year</option>
+                                </select>
+                            </div>
+                            <button onclick="showLogoModal()" class="btn btn-outline">
+                                <i class="fas fa-image"></i>
+                                Manage Logo
+                            </button>
+                            <button onclick="loadDashboardData()" class="btn btn-primary">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-container">
+                        <div class="stat-card primary">
+                            <div class="stat-content">
+                                <div class="stat-info">
+                                    <h3 id="totalProducts" class="stat-number">0</h3>
+                                    <p class="stat-label">Total Products</p>
+                                    <span class="stat-change positive">+12% from last month</span>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-boxes"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card success">
+                            <div class="stat-content">
+                                <div class="stat-info">
+                                    <h3 id="totalOrders" class="stat-number">0</h3>
+                                    <p class="stat-label">Total Orders</p>
+                                    <span class="stat-change positive">+8% from last month</span>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card warning">
+                            <div class="stat-content">
+                                <div class="stat-info">
+                                    <h3 id="pendingPayments" class="stat-number">0</h3>
+                                    <p class="stat-label">Pending Payments</p>
+                                    <span class="stat-change neutral">Same as last month</span>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card revenue">
+                            <div class="stat-content">
+                                <div class="stat-info">
+                                    <h3 id="totalRevenue" class="stat-number">₹0</h3>
+                                    <p class="stat-label">Total Revenue</p>
+                                    <span class="stat-change positive">+25% from last month</span>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Grid -->
+                    <div class="analytics-grid" id="analyticsSection" style="display: none;">
+                        <div class="analytics-card large">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-chart-line"></i>
+                                    Sales Analytics
+                                </h3>
+                                <div class="card-actions">
+                                    <button class="btn btn-sm btn-ghost">
+                                        <i class="fas fa-download"></i>
+                                        Export
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div id="salesChart" class="chart-container">
+                                    <!-- Sales chart will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analytics-card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-trophy"></i>
+                                    Top Products
+                                </h3>
+                            </div>
+                            <div class="card-content">
+                                <div id="topProducts" class="top-products-list">
+                                    <!-- Top products will be listed here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders Section -->
+                    <div class="section-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Recent Orders
+                            </h3>
+                            <button onclick="showOrders()" class="btn btn-sm btn-ghost">
+                                View All <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-wrapper">
+                                <table id="recentOrdersTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersBody">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Content -->
+            <div id="productsContent" class="content" style="display: none;">
+                <div class="content-header">
+                    <h2><i class="fas fa-boxes"></i> Product Management</h2>
+                    <button onclick="showAddProduct()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Product
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Content -->
+            <div id="ordersContent" class="content" style="display: none;">
+                <div class="content-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
+                    <div class="filter-controls">
+                        <select id="orderStatusFilter">
+                            <option value="">All Orders</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <select id="paymentMethodFilter">
+                            <option value="">All Payment Methods</option>
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Payment Status</th>
+                                <th>Order Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Content -->
+            <div id="paymentsContent" class="content" style="display: none;">
+                <div class="content-header">
+                    <h2><i class="fas fa-credit-card"></i> Payment Approvals</h2>
+                    <p>Approve or reject UPI payments</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody">
+                            <!-- Pending payments will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Product -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle"><i class="fas fa-plus"></i> Add New Product</h3>
+                <span class="close" onclick="closeProductModal()">&times;</span>
+            </div>
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="productPrice">Price (₹) *</label>
+                        <input type="number" id="productPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productStock">Stock Quantity *</label>
+                        <input type="number" id="productStock" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category *</label>
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Protein">Protein</option>
+                        <option value="Performance">Performance</option>
+                        <option value="Recovery">Recovery</option>
+                        <option value="Energy">Energy</option>
+                        <option value="Vitamins">Vitamins</option>
+                        <option value="Weight Loss">Weight Loss</option>
+                        <option value="Accessories">Accessories</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productImage">Image URL</label>
+                    <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeProductModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Order Details -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="orderModalTitle"><i class="fas fa-shopping-cart"></i> Order Details</h3>
+                <span class="close" onclick="closeOrderModal()">&times;</span>
+            </div>
+            <div id="orderModalBody">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Logo Management -->
+    <div id="logoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-image"></i> Logo Management</h3>
+                <span class="close" onclick="closeLogoModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="current-logo-section">
+                    <h4>Current Logo</h4>
+                    <div id="currentLogoPreview" class="logo-preview">
+                        <p>No logo uploaded</p>
+                    </div>
+                </div>
+                
+                <form id="logoForm" onsubmit="uploadLogo(event)">
+                    <div class="form-group">
+                        <label for="logoFile">Upload New Logo</label>
+                        <input type="file" id="logoFile" name="logoFile" accept="image/*" onchange="previewLogo(this)">
+                        <small>Recommended: 200x200px, PNG or JPG format</small>
+                    </div>
+                    
+                    <div id="newLogoPreview" class="logo-preview" style="display: none;">
+                        <h4>Preview</h4>
+                        <img id="previewImage" src="" alt="Logo Preview">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="closeLogoModal()" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Upload Logo</button>
+                        <button type="button" onclick="removeLogo()" class="btn btn-danger">Remove Logo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

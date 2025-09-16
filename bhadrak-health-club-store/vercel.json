@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "name": "bhadrak-health-club-store",
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
+    {
+      "src": "user-store/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin-portal/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "admin-portal/$1"
+    },
+    {
+      "src": "/admin",
+      "dest": "admin-portal/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "user-store/$1"
+    },
+    {
+      "src": "/",
+      "dest": "user-store/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "JWT_SECRET": "@jwt-secret"
+  }
+}
