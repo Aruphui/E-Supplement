@@ -636,6 +636,12 @@ function showCheckout() {
         return;
     }
     
+    // Check if user is logged in before allowing checkout
+    if (!authToken) {
+        showAuthModal();
+        return;
+    }
+    
     currentStep = 1;
     showCheckoutStep(1);
     document.getElementById('checkoutModal').style.display = 'block';
@@ -726,6 +732,12 @@ function loadOrderReview() {
 async function handleCheckout(e) {
     e.preventDefault();
 
+    // Check if user is logged in - REQUIRED for checkout
+    if (!authToken) {
+        showAuthModal();
+        return;
+    }
+
     const customerName = document.getElementById('customerName').value.trim();
     const customerPhone = document.getElementById('customerPhone').value.trim();
     const customerAddress = document.getElementById('customerAddress').value.trim();
@@ -743,18 +755,12 @@ async function handleCheckout(e) {
     };
 
     try {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        // Add auth token if user is logged in
-        if (authToken) {
-            headers['Authorization'] = `Bearer ${authToken}`;
-        }
-
         const response = await fetch(`${API_BASE}/orders`, {
             method: 'POST',
-            headers: headers,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}` // Always include auth token
+            },
             body: JSON.stringify(orderData)
         });
 
@@ -773,7 +779,12 @@ async function handleCheckout(e) {
             showOrderSuccess(data);
 
         } else {
-            showNotification(data.message || 'Failed to place order', 'error');
+            if (response.status === 401) {
+                showAuthModal();
+                logout(); // Clear invalid token
+            } else {
+                showNotification(data.message || 'Failed to place order', 'error');
+            }
         }
     } catch (error) {
         console.error('Checkout error:', error);

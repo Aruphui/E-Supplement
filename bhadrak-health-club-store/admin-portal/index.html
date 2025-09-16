@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bhadrak Health Club - Admin Portal</title>
-    <link rel="stylesheet" href="styles-modern.css">
+    <link rel="stylesheet" href="styles-new.css">
     <script src="config.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -239,123 +239,207 @@
                         <div class="card-content">
                             <div class="table-wrapper">
                                 <table id="recentOrdersTable" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
-                                    <th>Payment</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentOrdersBody">
-                                <!-- Orders will be loaded here -->
-                            </tbody>
-                        </table>
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Products</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentOrdersBody">
+                                        <!-- Recent orders will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Products Content -->
-            <div id="productsContent" class="content" style="display: none;">
-                <div class="content-header">
-                    <h2><i class="fas fa-boxes"></i> Product Management</h2>
-                    <button onclick="showAddProduct()" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add New Product
-                    </button>
-                </div>
+                <!-- Products Content -->
+                <div id="productsContent" class="content-section" style="display: none;">
+                    <div class="content-header">
+                        <div class="header-left">
+                            <h1 class="page-title">
+                                <i class="fas fa-boxes title-icon"></i>
+                                Product Management
+                            </h1>
+                            <p class="page-subtitle">Manage your supplement inventory and pricing</p>
+                        </div>
+                        <div class="header-actions">
+                            <button onclick="showProductModal()" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Add Product
+                            </button>
+                        </div>
+                    </div>
 
-                <div class="table-container">
-                    <table id="productsTable">
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTableBody">
-                            <!-- Products will be loaded here -->
-                        </tbody>
-                    </table>
+                    <div class="section-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-list"></i>
+                                All Products
+                            </h3>
+                            <div class="card-actions">
+                                <button onclick="loadProducts()" class="btn btn-sm btn-ghost">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-wrapper">
+                                <table id="productsTable" class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Image</th>
+                                            <th>Name</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody">
+                                        <!-- Products will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
             <!-- Orders Content -->
-            <div id="ordersContent" class="content" style="display: none;">
+            <div id="ordersContent" class="content-section" style="display: none;">
                 <div class="content-header">
-                    <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
-                    <div class="filter-controls">
-                        <select id="orderStatusFilter">
-                            <option value="">All Orders</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
-                        <select id="paymentMethodFilter">
-                            <option value="">All Payment Methods</option>
-                            <option value="Cash">Cash</option>
-                            <option value="UPI">UPI</option>
-                        </select>
+                    <div class="header-left">
+                        <h1 class="page-title">
+                            <i class="fas fa-shopping-cart title-icon"></i>
+                            Order Management
+                        </h1>
+                        <p class="page-subtitle">View and manage customer orders</p>
+                    </div>
+                    <div class="header-actions">
+                        <div class="filter-group">
+                            <label for="orderStatusFilter" class="filter-label">Status:</label>
+                            <select id="orderStatusFilter" class="filter-select">
+                                <option value="">All Orders</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="paymentMethodFilter" class="filter-label">Payment:</label>
+                            <select id="paymentMethodFilter" class="filter-select">
+                                <option value="">All Payment Methods</option>
+                                <option value="Cash">Cash</option>
+                                <option value="UPI">UPI</option>
+                            </select>
+                        </div>
+                        <button onclick="loadOrders()" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Orders
+                        </button>
                     </div>
                 </div>
 
-                <div class="table-container">
-                    <table id="ordersTable">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Amount</th>
-                                <th>Payment Method</th>
-                                <th>Payment Status</th>
-                                <th>Order Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody">
-                            <!-- Orders will be loaded here -->
-                        </tbody>
-                    </table>
+                <div class="section-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-list"></i>
+                            All Orders
+                        </h3>
+                        <div class="card-actions">
+                            <button onclick="loadOrders()" class="btn btn-sm btn-ghost">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-wrapper">
+                            <table id="ordersTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Phone</th>
+                                        <th>Amount</th>
+                                        <th>Payment Method</th>
+                                        <th>Payment Status</th>
+                                        <th>Order Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody">
+                                    <!-- Orders will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
+                <!-- Payments Content -->
+                <div id="paymentsContent" class="content-section" style="display: none;">
+                    <div class="content-header">
+                        <div class="header-left">
+                            <h1 class="page-title">
+                                <i class="fas fa-credit-card title-icon"></i>
+                                Payment Management
+                            </h1>
+                            <p class="page-subtitle">Approve or reject UPI payments</p>
+                        </div>
+                        <div class="header-actions">
+                            <button onclick="loadPendingPayments()" class="btn btn-primary">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh Payments
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Payments Content -->
-            <div id="paymentsContent" class="content" style="display: none;">
-                <div class="content-header">
-                    <h2><i class="fas fa-credit-card"></i> Payment Approvals</h2>
-                    <p>Approve or reject UPI payments</p>
+                    <div class="section-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-clock"></i>
+                                Pending Payments
+                            </h3>
+                            <div class="card-actions">
+                                <button onclick="loadPendingPayments()" class="btn btn-sm btn-ghost">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-wrapper">
+                                <table id="paymentsTable" class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Phone</th>
+                                            <th>Amount</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paymentsTableBody">
+                                        <!-- Pending payments will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="table-container">
-                    <table id="paymentsTable">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsTableBody">
-                            <!-- Pending payments will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            </main>
         </div>
-    </div>
 
     <!-- Modal for Add/Edit Product -->
     <div id="productModal" class="modal">

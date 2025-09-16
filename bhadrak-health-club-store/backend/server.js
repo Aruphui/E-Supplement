@@ -346,23 +346,15 @@ app.delete('/api/admin/products/:id', authenticateToken, (req, res) => {
 // ==================== ORDER ROUTES ====================
 
 // Create new order (public/authenticated)
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', authenticateToken, (req, res) => {
     const { customer_name, customer_phone, customer_address, items, payment_method } = req.body;
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    let customerId = null;
-
-    // Check if user is authenticated
-    if (token) {
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-            if (decoded.role === 'customer') {
-                customerId = decoded.id;
-            }
-        } catch (error) {
-            // Token invalid, continue as guest
-        }
+    
+    // Ensure only customers can place orders (not admins)
+    if (req.user.role !== 'customer') {
+        return res.status(403).json({ message: 'Only customers can place orders' });
     }
+    
+    const customerId = req.user.id; // Get customer ID from authenticated token
 
     if (!customer_name || !customer_phone || !items || items.length === 0 || !payment_method) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -614,6 +606,140 @@ app.put('/api/admin/orders/:id/status', authenticateToken, (req, res) => {
             res.json({ message: 'Order status updated successfully' });
         }
     );
+});
+
+// ==================== PAYMENT MANAGEMENT ROUTES ====================
+
+// Get pending payments (admin only)
+app.get('/api/admin/payments/pending', authenticateToken, (req, res) => {
+    const query = `
+        SELECT 
+            id, 
+            order_id,
+            customer_name, 
+            customer_phone, 
+            total_amount, 
+            payment_method,
+            payment_status,
+            created_at,
+            updated_at
+        FROM orders 
+        WHERE payment_status = "Pending" AND payment_method = "UPI"
+        ORDER BY created_at DESC
+    `;
+    
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching pending payments:', err);
+            return res.status(500).json({ message: 'Failed to fetch pending payments' });
+        }
+        
+        res.json(rows);
+    });
+});
+
+// Approve payment (admin only)
+app.post('/api/admin/payments/:id/approve', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    
+    db.run(
+        `UPDATE orders SET 
+            payment_status = "Paid", 
+            order_status = "Confirmed",
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ? AND payment_status = "Pending"`,
+        [id],
+        function(err) {
+            if (err) {
+                console.error('Error approving payment:', err);
+                return res.status(500).json({ message: 'Failed to approve payment' });
+            }
+            
+            if (this.changes === 0) {
+                return res.status(404).json({ message: 'Payment not found or already processed' });
+            }
+            
+            res.json({ 
+                message: 'Payment approved successfully',
+                changes: this.changes 
+            });
+        }
+    );
+});
+
+// Reject payment (admin only)
+app.post('/api/admin/payments/:id/reject', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    
+    db.run(
+        `UPDATE orders SET 
+            payment_status = "Failed", 
+            order_status = "Cancelled",
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ? AND payment_status = "Pending"`,
+        [id],
+        function(err) {
+            if (err) {
+                console.error('Error rejecting payment:', err);
+                return res.status(500).json({ message: 'Failed to reject payment' });
+            }
+            
+            if (this.changes === 0) {
+                return res.status(404).json({ message: 'Payment not found or already processed' });
+            }
+            
+            res.json({ 
+                message: 'Payment rejected',
+                changes: this.changes 
+            });
+        }
+    );
+});
+
+// Get payment details (admin only)
+app.get('/api/admin/payments/:id', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    
+    const query = `
+        SELECT 
+            id, 
+            order_id,
+            customer_name, 
+            customer_phone, 
+            customer_address,
+            total_amount, 
+            payment_method,
+            payment_status,
+            order_status,
+            items,
+            created_at,
+            updated_at
+        FROM orders 
+        WHERE id = ?
+    `;
+    
+    db.get(query, [id], (err, row) => {
+        if (err) {
+            console.error('Error fetching payment details:', err);
+            return res.status(500).json({ message: 'Failed to fetch payment details' });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+        
+        // Parse items JSON if it exists
+        if (row.items) {
+            try {
+                row.items = JSON.parse(row.items);
+            } catch (parseErr) {
+                console.error('Error parsing order items:', parseErr);
+                row.items = [];
+            }
+        }
+        
+        res.json(row);
+    });
 });
 
 // ==================== DASHBOARD ROUTES ====================

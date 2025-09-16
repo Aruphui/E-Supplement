@@ -7,7 +7,6 @@ let currentEditingProductId = null;
 document.addEventListener('DOMContentLoaded', function() {
     if (authToken) {
         showDashboardScreen();
-        loadDashboardData();
     } else {
         showLoginScreen();
     }
@@ -65,13 +64,15 @@ function logout() {
 
 // Screen Navigation
 function showLoginScreen() {
-    document.getElementById('loginScreen').style.display = 'block';
+    document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('dashboardScreen').style.display = 'none';
 }
 
 function showDashboardScreen() {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('dashboardScreen').style.display = 'block';
+    document.getElementById('dashboardScreen').style.display = 'flex';
+    // Show dashboard content by default
+    showDashboard();
 }
 
 function showDashboard() {
@@ -81,21 +82,32 @@ function showDashboard() {
 }
 
 function showProducts() {
+    console.log('showProducts called');
     setActiveTab('productsTab');
     showContent('productsContent');
-    loadProducts();
+    
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+        loadProducts();
+    }, 100);
 }
 
 function showOrders() {
+    console.log('showOrders called');
     setActiveTab('ordersTab');
     showContent('ordersContent');
     loadOrders();
 }
 
 function showPayments() {
+    console.log('showPayments called');
     setActiveTab('paymentsTab');
     showContent('paymentsContent');
-    loadPendingPayments();
+    
+    // Add a small delay to ensure DOM is ready
+    setTimeout(() => {
+        loadPendingPayments();
+    }, 100);
 }
 
 function setActiveTab(activeTabId) {
@@ -108,12 +120,20 @@ function setActiveTab(activeTabId) {
 }
 
 function showContent(contentId) {
+    console.log('Showing content:', contentId);
     // Hide all content sections
-    document.querySelectorAll('.content').forEach(content => {
+    document.querySelectorAll('.content-section').forEach(content => {
         content.style.display = 'none';
+        console.log('Hiding:', content.id);
     });
     // Show selected content
-    document.getElementById(contentId).style.display = 'block';
+    const targetContent = document.getElementById(contentId);
+    if (targetContent) {
+        targetContent.style.display = 'block';
+        console.log('Showing:', contentId);
+    } else {
+        console.error('Content not found:', contentId);
+    }
 }
 
 // Dashboard Functions
@@ -228,13 +248,70 @@ function loadRecentOrders(orders) {
     });
 }
 
+// Debug function - can be called from browser console
+function debugProducts() {
+    console.log('=== DEBUG PRODUCTS ===');
+    console.log('API_BASE:', API_BASE);
+    
+    const tbody = document.getElementById('productsTableBody');
+    console.log('productsTableBody element:', tbody);
+    
+    const productsContent = document.getElementById('productsContent');
+    console.log('productsContent element:', productsContent);
+    console.log('productsContent display:', productsContent ? productsContent.style.display : 'not found');
+    
+    // Test API call
+    fetch(`${API_BASE}/products`)
+        .then(response => {
+            console.log('API response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('API response data:', data);
+        })
+        .catch(error => {
+            console.error('API error:', error);
+        });
+}
+
+// Test function to add a manual row
+function testAddRow() {
+    const tbody = document.getElementById('productsTableBody');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr style="background: red; color: white;">
+                <td>TEST</td>
+                <td>TEST PRODUCT</td>
+                <td>TEST CATEGORY</td>
+                <td>₹100.00</td>
+                <td>50</td>
+                <td>Active</td>
+                <td>Actions</td>
+            </tr>
+        `;
+        console.log('Test row added to products table');
+    } else {
+        console.error('Products table body not found');
+    }
+}
+
 // Product Functions
 async function loadProducts() {
+    console.log('Loading products...');
     try {
         const response = await fetch(`${API_BASE}/products`);
+        console.log('Products response status:', response.status);
         const products = await response.json();
+        console.log('Products received:', products);
         
         const tbody = document.getElementById('productsTableBody');
+        console.log('Products table body element:', tbody);
+        
+        if (!tbody) {
+            console.error('productsTableBody element not found!');
+            return;
+        }
+        
         tbody.innerHTML = '';
         
         if (products.length === 0) {
@@ -242,33 +319,51 @@ async function loadProducts() {
             return;
         }
         
-        products.forEach(product => {
+        products.forEach((product, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
-                    <img src="${product.image_url || 'https://via.placeholder.com/50x50?text=No+Image'}" 
-                         alt="${product.name}" class="product-thumbnail">
+                    <div class="product-image-placeholder">
+                        <i class="fas fa-box"></i>
+                    </div>
                 </td>
-                <td>${product.name}</td>
+                <td><strong>${product.name}</strong></td>
                 <td><span class="badge badge-category">${product.category}</span></td>
                 <td>₹${parseFloat(product.price).toFixed(2)}</td>
                 <td>${product.stock_quantity}</td>
                 <td><span class="badge badge-${product.is_active ? 'active' : 'inactive'}">${product.is_active ? 'Active' : 'Inactive'}</span></td>
-                <td>
-                    <button onclick="editProduct(${product.id})" class="btn btn-sm btn-secondary">
-                        <i class="fas fa-edit"></i> Edit
+                <td class="action-buttons">
+                    <button onclick="editProduct(${product.id})" class="btn-action btn-edit" title="Edit Product">
+                        <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="deleteProduct(${product.id})" class="btn btn-sm btn-danger">
-                        <i class="fas fa-trash"></i> Delete
+                    <button onclick="deleteProduct(${product.id})" class="btn-action btn-delete" title="Delete Product">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </td>
             `;
             tbody.appendChild(row);
+            
+            // Log first few products for debugging
+            if (index < 3) {
+                console.log(`Added product ${index + 1}:`, product.name, row);
+            }
         });
+        
+        console.log('Products table populated with', products.length, 'items');
+        console.log('Table HTML:', tbody.innerHTML.substring(0, 200) + '...');
     } catch (error) {
         console.error('Products error:', error);
+        const tbody = document.getElementById('productsTableBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Error loading products. Please try again.</td></tr>';
+        }
         showNotification('Failed to load products', 'error');
     }
+}
+
+// Product Modal Functions
+function showProductModal() {
+    showAddProduct();
 }
 
 function showAddProduct() {
@@ -420,17 +515,17 @@ async function loadOrders() {
                 <td><span class="badge badge-${order.payment_status.toLowerCase()}">${order.payment_status}</span></td>
                 <td><span class="badge badge-${order.order_status.toLowerCase()}">${order.order_status}</span></td>
                 <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                <td>
-                    <button onclick="viewOrder(${order.id})" class="btn btn-sm btn-info">
-                        <i class="fas fa-eye"></i> View
+                <td class="action-buttons">
+                    <button onclick="viewOrder(${order.id})" class="btn-action btn-edit" title="View Order">
+                        <i class="fas fa-eye"></i>
                     </button>
-                    <select onchange="updateOrderStatus(${order.id}, this.value)" class="btn btn-sm">
+                    <select onchange="updateOrderStatus(${order.id}, this.value)" class="filter-select" style="min-width: 120px;">
                         <option value="">Change Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
+                        <option value="Pending" ${order.order_status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Confirmed" ${order.order_status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                        <option value="Shipped" ${order.order_status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="Delivered" ${order.order_status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Cancelled" ${order.order_status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                     </select>
                 </td>
             `;
@@ -793,5 +888,169 @@ async function removeLogo() {
     } catch (error) {
         console.error('Logo removal error:', error);
         showNotification('Failed to remove logo', 'error');
+    }
+}
+
+// Payment Functions (using orders API for pending UPI payments)
+async function loadPendingPayments() {
+    console.log('Loading pending payments...');
+    
+    try {
+        const authToken = localStorage.getItem('adminToken');
+        if (!authToken) {
+            showNotification('Please log in to view payments', 'error');
+            return;
+        }
+
+        // Use the existing orders endpoint with payment status filter
+        const response = await fetch(`${API_BASE}/admin/orders`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        console.log('Orders response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const allOrders = await response.json();
+        console.log('All orders received:', allOrders);
+        
+        // Filter for pending UPI payments
+        const pendingPayments = allOrders.filter(order => 
+            order.payment_status === 'Pending' && order.payment_method === 'UPI'
+        );
+        
+        console.log('Filtered pending payments:', pendingPayments);
+        
+        const paymentsTableBody = document.getElementById('paymentsTableBody');
+        console.log('Payments table body element:', paymentsTableBody);
+        
+        if (!paymentsTableBody) {
+            console.error('Payments table body not found');
+            return;
+        }
+
+        // Clear existing content
+        paymentsTableBody.innerHTML = '';
+        
+        if (!pendingPayments || pendingPayments.length === 0) {
+            paymentsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--gray-400);">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                        <br>
+                        No pending UPI payments found
+                    </td>
+                </tr>
+            `;
+            console.log('No pending payments to display');
+            return;
+        }
+
+        // Populate payments table
+        pendingPayments.forEach((payment, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>#${payment.order_id || payment.id}</td>
+                <td>${payment.customer_name || 'Unknown'}</td>
+                <td>${payment.customer_phone || 'N/A'}</td>
+                <td>₹${payment.total_amount ? payment.total_amount.toFixed(2) : '0.00'}</td>
+                <td>${payment.created_at ? new Date(payment.created_at).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button onclick="approveUpiPayment(${payment.id})" class="btn-action btn-approve" title="Approve Payment">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button onclick="rejectUpiPayment(${payment.id})" class="btn-action btn-reject" title="Reject Payment">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            paymentsTableBody.appendChild(row);
+            console.log(`Added payment ${index + 1}:`, payment.customer_name);
+        });
+        
+        console.log(`Payments table populated with ${pendingPayments.length} items`);
+        showNotification(`Loaded ${pendingPayments.length} pending UPI payments`, 'success');
+        
+    } catch (error) {
+        console.error('Error loading pending payments:', error);
+        showNotification('Failed to load pending payments', 'error');
+        
+        // Show error message in table
+        const paymentsTableBody = document.getElementById('paymentsTableBody');
+        if (paymentsTableBody) {
+            paymentsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--danger-300);">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
+                        <br>
+                        Failed to load payments. Please try again.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+async function approveUpiPayment(orderId) {
+    if (!confirm('Are you sure you want to approve this UPI payment?')) {
+        return;
+    }
+    
+    try {
+        const authToken = localStorage.getItem('adminToken');
+        const response = await fetch(`${API_BASE}/admin/orders/${orderId}/payment`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ payment_status: 'Approved' })
+        });
+
+        if (response.ok) {
+            showNotification('UPI payment approved successfully', 'success');
+            loadPendingPayments(); // Reload payments list
+        } else {
+            const errorData = await response.json();
+            showNotification(errorData.message || 'Failed to approve payment', 'error');
+        }
+    } catch (error) {
+        console.error('Error approving UPI payment:', error);
+        showNotification('Failed to approve payment', 'error');
+    }
+}
+
+async function rejectUpiPayment(orderId) {
+    if (!confirm('Are you sure you want to reject this UPI payment? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const authToken = localStorage.getItem('adminToken');
+        const response = await fetch(`${API_BASE}/admin/orders/${orderId}/payment`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ payment_status: 'Rejected' })
+        });
+
+        if (response.ok) {
+            showNotification('UPI payment rejected', 'success');
+            loadPendingPayments(); // Reload payments list
+        } else {
+            const errorData = await response.json();
+            showNotification(errorData.message || 'Failed to reject payment', 'error');
+        }
+    } catch (error) {
+        console.error('Error rejecting UPI payment:', error);
+        showNotification('Failed to reject payment', 'error');
     }
 }
